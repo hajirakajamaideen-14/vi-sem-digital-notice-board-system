@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Notices — EduBoard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0c10; --surface: #12151c; --card: #1a1e28; --border: #252a38;
+      --accent: #4fc3f7; --accent2: #f5a623; --accent3: #e8486a;
+      --text: #e8eaf0; --muted: #8891a8;
+    }
+    body {
+      background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode { --bg: #e8eaf0; --surface: #ffffff; --card: #f5f5f5; --border: #d0d0d0; --text: #1a1a1a; --muted: #666666; }
+    body.dark-mode .notice-card { background: #fff; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(79,195,247,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,247,0.03) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none;
+    }
+    .blob { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.1; pointer-events: none; }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -200px; right: -100px; }
+    .blob-2 { width: 300px; height: 300px; background: var(--accent2); bottom: -100px; left: -100px; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(10,12,16,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; }
+    .logo span { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .dark-mode-btn { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+    .dark-mode-btn:hover { border-color: var(--accent); }
+    .student-badge {
+      background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.3);
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 0.78rem; color: var(--accent); font-weight: 500;
+    }
+    .back-btn {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 16px; color: var(--muted); text-decoration: none;
+      font-size: 0.85rem; transition: all 0.2s;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Hero */
+    .hero {
+      position: relative; z-index: 1;
+      text-align: center; padding: 80px 24px 40px;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 800; margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--muted); font-size: 1rem; margin-bottom: 40px; }
+
+    /* Search */
+    .search-bar {
+      max-width: 600px; margin: 0 auto;
+      display: flex; gap: 10px; padding: 0 20px;
+    }
+    .search-input {
+      flex: 1; background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,195,247,0.1); }
+    .search-btn {
+      background: var(--accent); color: #000; border: none; border-radius: 12px;
+      padding: 14px 24px; font-family: 'Syne', sans-serif; font-size: 0.9rem;
+      font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 0.2s;
+    }
+    .search-btn:hover { opacity: 0.9; }
+
+    /* Filters */
+    .filters-section {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 36px auto 0; padding: 0 36px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .filter-label { font-size: 0.85rem; color: var(--muted); }
+    .filter-chip {
+      padding: 7px 18px; border-radius: 100px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--card);
+      color: var(--muted); transition: all 0.2s;
+    }
+    .filter-chip:hover, .filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(79,195,247,0.08); }
+    .filter-chip.dept.active { border-color: var(--accent2); color: var(--accent2); background: rgba(245,166,35,0.08); }
+
+    select.filter-select {
+      background: var(--card); border: 1px solid var(--border); border-radius: 100px;
+      padding: 7px 18px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; outline: none; cursor: pointer;
+    }
+
+    /* Notice Grid */
+    .notices-section {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 36px auto; padding: 0 36px 80px;
+    }
+    .notices-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+    }
+    .notices-header h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+    .result-count { color: var(--muted); font-size: 0.85rem; }
+
+    .notices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .notice-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px; transition: all 0.3s;
+      cursor: pointer; position: relative; overflow: hidden;
+    }
+    .notice-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .notice-card.high::before { background: var(--accent3); }
+    .notice-card.medium::before { background: var(--accent2); }
+    .notice-card.low::before { background: var(--accent); }
+
+    .notice-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 40px rgba(79,195,247,0.1); }
+
+    .nc-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tag-cse { background: rgba(79,195,247,0.12); color: var(--accent); }
+    .tag-ece { background: rgba(245,166,35,0.12); color: var(--accent2); }
+    .tag-mech { background: rgba(76,175,138,0.12); color: #4caf8a; }
+    .tag-gen { background: rgba(137,145,168,0.1); color: var(--muted); }
+    .tag-exam { background: rgba(232,72,106,0.12); color: var(--accent3); }
+    .tag-event { background: rgba(179,157,219,0.12); color: #b39ddb; }
+    .tag-academic { background: rgba(245,166,35,0.1); color: var(--accent2); }
+    .tag-urgent { background: var(--accent3); color: #fff; }
+
+    .nc-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .nc-content { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .nc-footer { display: flex; align-items: center; justify-content: space-between; }
+    .nc-date { font-size: 0.78rem; color: var(--muted); }
+    .nc-priority { font-size: 0.75rem; font-weight: 600; }
+    .priority-high { color: var(--accent3); }
+    .priority-medium { color: var(--accent2); }
+    .priority-low { color: var(--accent); }
+
+    .urgent-banner {
+      background: rgba(232,72,106,0.08); border: 1px solid rgba(232,72,106,0.2);
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 28px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .urgent-label { font-size: 0.8rem; font-weight: 600; color: var(--accent3); white-space: nowrap; }
+    .urgent-notices { display: flex; gap: 8px; flex-wrap: wrap; }
+    .urgent-item { font-size: 0.85rem; color: var(--text); text-decoration: underline; cursor: pointer; }
+    .urgent-item:hover { color: var(--accent3); }
+
+    .empty { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty .e-icon { font-size: 3rem; margin-bottom: 16px; }
+
+    /* Detail Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(10,12,16,0.9); backdrop-filter: blur(10px); align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; animation: fadeUp 0.3s ease; }
+    .modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; transition: color 0.2s; }
+    .modal-close:hover { color: var(--text); }
+    .modal-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; margin-top: 24px; }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+    .modal-meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+    .modal-content { color: var(--text); font-size: 0.95rem; line-height: 1.8; }
+    .modal-expiry { margin-top: 24px; padding: 14px 16px; background: var(--surface); border-radius: 10px; font-size: 0.85rem; color: var(--muted); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease; }
+
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 60px 20px 32px; }
+      .search-bar { padding: 0; }
+      .filters-section { padding: 0 20px; }
+      .notices-section { padding: 0 20px 60px; }
+      .notices-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <nav>
+    <div class="logo">Edu<span>Board</span></div>
+    <div class="nav-right">
+      <button class="dark-mode-btn" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+      <div class="student-badge">🎓 Student View</div>
+      <a href="../index.html" class="back-btn">← Home</a>
+    </div>
+  </nav>
+  <script>
+    window.toggleDarkMode = function() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      document.getElementById('darkModeToggle').textContent = isDark ? '☀️' : '🌙';
+    };
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode === 'true') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('darkModeToggle').textContent = '☀️';
+    }
+  </script>
+
+  <section class="hero">
+    <h1>Campus <span>Notice Board</span></h1>
+    <p>Stay up-to-date with all announcements, events, and academic updates</p>
+    <div class="search-bar">
+      <input class="search-input" type="text" id="searchInput" placeholder="Search notices by title, department, or keyword..." oninput="renderNotices()">
+      <button class="search-btn" onclick="renderNotices()">Search</button>
+    </div>
+  </section>
+
+  <div class="filters-section">
+    <span class="filter-label">Department:</span>
+    <button class="filter-chip dept active" onclick="setDept('', this)">All</button>
+    <button class="filter-chip dept" onclick="setDept('CSE', this)">CSE</button>
+    <button class="filter-chip dept" onclick="setDept('ECE', this)">ECE</button>
+    <button class="filter-chip dept" onclick="setDept('Mechanical', this)">Mechanical</button>
+    <button class="filter-chip dept" onclick="setDept('General', this)">General</button>
+    <span class="filter-label" style="margin-left:12px">Category:</span>
+    <select class="filter-select" id="catFilter" onchange="renderNotices()">
+      <option value="">All Categories</option>
+      <option>Academic</option>
+      <option>Event</option>
+      <option>Exam</option>
+      <option>Urgent</option>
+      <option>Holiday</option>
+    </select>
+  </div>
+
+  <section class="notices-section">
+    <div class="urgent-banner" id="urgentBanner">
+      <span class="urgent-label">🔴 URGENT</span>
+      <div class="urgent-notices" id="urgentList"></div>
+    </div>
+    <div class="notices-header">
+      <h3>All Notices</h3>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+    <div class="notices-grid" id="noticesGrid"></div>
+  </section>
+
+  <!-- Notice detail modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+      <div class="modal-tags" id="dTags"></div>
+      <div class="modal-title" id="dTitle"></div>
+      <div class="modal-meta" id="dMeta"></div>
+      <div class="modal-content" id="dContent"></div>
+      <div class="modal-expiry" id="dExpiry"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('detailModal').addEventListener('click', function(e) { if (e.target === this) closeDetail(); });
+  </script>
+  <script type="module" src="../js/student.js"></script>
+</body>
+</html>
