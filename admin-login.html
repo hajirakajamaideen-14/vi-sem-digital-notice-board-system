@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — EduBoard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0c10; --surface: #12151c; --card: #1a1e28; --border: #252a38;
+      --accent: #e8486a; --text: #e8eaf0; --muted: #8891a8;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(232,72,106,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(232,72,106,0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+    }
+    .blob { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.12; pointer-events: none; }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -200px; right: -100px; }
+    .blob-2 { width: 300px; height: 300px; background: #f5a623; bottom: -100px; left: -100px; }
+
+    .login-wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 440px;
+      padding: 20px;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-size: 0.85rem;
+      margin-bottom: 32px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .login-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(232,72,106,0.1); border: 1px solid rgba(232,72,106,0.3);
+      border-radius: 100px; padding: 6px 14px; font-size: 0.78rem;
+      color: var(--accent); font-weight: 500; margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem; font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 36px; line-height: 1.5; }
+
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 8px; color: var(--text); }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,72,106,0.1); }
+
+    .input-hint { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-login:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-login:active { transform: translateY(0); }
+
+    .divider { text-align: center; margin: 20px 0; color: var(--muted); font-size: 0.85rem; }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .remember-row input { width: auto; }
+    .remember-row label { margin-bottom: 0; font-weight: 400; color: var(--muted); cursor: pointer; }
+
+    .error-msg {
+      background: rgba(232,72,106,0.1); border: 1px solid rgba(232,72,106,0.3);
+      border-radius: 10px; padding: 12px 16px;
+      color: #f08090; font-size: 0.88rem;
+      display: none; margin-bottom: 16px;
+    }
+    .error-msg.show { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 24px; border-radius: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="login-wrap">
+    <a href="../index.html" class="back-link">← Back to Home</a>
+    <div class="login-card">
+      <div class="login-badge">🛡️ Admin Portal</div>
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Sign in to manage notices, departments, and system settings.</p>
+
+      <div class="error-msg" id="errorMsg">Invalid credentials. Please try again.</div>
+
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="email" id="email" placeholder="admin@college.edu" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter your password" />
+        <div class="input-hint">Demo: admin@college.edu / admin123</div>
+      </div>
+
+      <div class="remember-row">
+        <input type="checkbox" id="remember" />
+        <label for="remember">Remember me</label>
+      </div>
+
+      <button class="btn-login" onclick="handleLogin()">Sign In as Admin</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { login, autoLogin, initDarkMode, updateDarkModeIcon, getRememberedUser } from '../js/auth.js';
+    
+    initDarkMode();
+    updateDarkModeIcon();
+    
+    const rememberedEmail = getRememberedUser();
+    if (rememberedEmail) {
+      document.getElementById('email').value = rememberedEmail;
+      document.getElementById('remember').checked = true;
+    }
+    
+    autoLogin();
+    
+    function handleLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('remember').checked;
+      login(email, password, remember);
+    }
+    document.querySelector('.btn-login').addEventListener('click', handleLogin);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+</body>
+</html>
