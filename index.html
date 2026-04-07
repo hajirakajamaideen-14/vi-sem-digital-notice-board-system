@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduBoard — Digital Notice System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c10;
+      --surface: #12151c;
+      --card: #1a1e28;
+      --border: #252a38;
+      --accent: #f5a623;
+      --accent2: #e8486a;
+      --accent3: #4fc3f7;
+      --text: #e8eaf0;
+      --muted: #8891a8;
+      --admin: #e8486a;
+      --faculty: #f5a623;
+      --student: #4fc3f7;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      --bg: #e8eaf0;
+      --surface: #ffffff;
+      --card: #f5f5f5;
+      --border: #d0d0d0;
+      --text: #1a1a1a;
+      --muted: #666666;
+    }
+
+    body.dark-mode .blob { opacity: 0.05; }
+    body.dark-mode body::before { background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); }
+    body.dark-mode .role-card { border-color: var(--border); }
+    body.dark-mode .feature-card { background: #fff; }
+    body.dark-mode .stat-card { background: #fff; }
+
+    .dark-mode-toggle {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+    .dark-mode-toggle:hover { border-color: var(--accent); }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,166,35,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,166,35,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glowing blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -100px; left: -100px; animation: drift 12s ease-in-out infinite; }
+    .blob-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -80px; right: -80px; animation: drift 15s ease-in-out infinite reverse; }
+    .blob-3 { width: 300px; height: 300px; background: var(--accent3); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: drift 10s ease-in-out infinite 2s; }
+
+    @keyframes drift {
+      0%,100% { transform: translate(0,0); }
+      33% { transform: translate(30px,-20px); }
+      66% { transform: translate(-20px,30px); }
+    }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(10,12,16,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 60px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245,166,35,0.1);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .badge::before { content: '◉'; font-size: 0.6rem; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    h1 .line2 {
+      display: block;
+      -webkit-text-stroke: 2px var(--accent);
+      color: transparent;
+    }
+
+    .hero-sub {
+      max-width: 520px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 60px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    /* Role cards */
+    .role-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .role-card {
+      width: 220px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .role-card.admin::before { background: radial-gradient(circle at top, rgba(232,72,106,0.12), transparent 70%); }
+    .role-card.faculty::before { background: radial-gradient(circle at top, rgba(245,166,35,0.12), transparent 70%); }
+    .role-card.student::before { background: radial-gradient(circle at top, rgba(79,195,247,0.12), transparent 70%); }
+
+    .role-card:hover { transform: translateY(-6px); border-color: transparent; }
+    .role-card:hover::before { opacity: 1; }
+    .role-card.admin:hover { box-shadow: 0 20px 60px rgba(232,72,106,0.2); border-color: rgba(232,72,106,0.4); }
+    .role-card.faculty:hover { box-shadow: 0 20px 60px rgba(245,166,35,0.2); border-color: rgba(245,166,35,0.4); }
+    .role-card.student:hover { box-shadow: 0 20px 60px rgba(79,195,247,0.2); border-color: rgba(79,195,247,0.4); }
+
+    .role-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+
+    .admin .role-icon { background: rgba(232,72,106,0.15); }
+    .faculty .role-icon { background: rgba(245,166,35,0.15); }
+    .student .role-icon { background: rgba(79,195,247,0.15); }
+
+    .role-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .role-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .role-btn {
+      margin-top: 8px;
+      padding: 10px 24px;
+      border-radius: 100px;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .admin .role-btn { background: var(--admin); color: #fff; }
+    .faculty .role-btn { background: var(--faculty); color: #000; }
+    .student .role-btn { background: var(--student); color: #000; }
+    .role-btn:hover { opacity: 0.85; }
+
+    /* Stats bar */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      padding: 48px;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+    /* Features section */
+    .features {
+      position: relative;
+      z-index: 1;
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 48px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color 0.3s;
+    }
+    .feature-card:hover { border-color: var(--accent); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 16px; }
+    .feature-card h4 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 100px 20px 60px; }
+      .stats-bar { gap: 32px; }
+      .features { padding: 60px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <nav>
+    <div class="logo">Edu<span>Board</span></div>
+    <div class="nav-links">
+      <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+      <a href="#features">Features</a>
+      <a href="pages/student.html">View Notices</a>
+    </div>
+  </nav>
+
+  <script type="module">
+    import { autoLogin, initDarkMode, updateDarkModeIcon } from './js/auth.js';
+    initDarkMode();
+    updateDarkModeIcon();
+    autoLogin();
+  </script>
+  <script>
+    document.querySelector(".role-card.admin").addEventListener("click", () => {
+      window.location.href = "pages/admin-login.html";
+    });
+
+    document.querySelector(".role-card.faculty").addEventListener("click", () => {
+      window.location.href = "pages/faculty-login.html";
+    });
+
+    document.querySelector(".role-card.student").addEventListener("click", () => {
+      window.location.href = "pages/student.html";
+    });
+  </script>
+
+  <section class="hero">
+    <div class="badge">Digital Notice Board System</div>
+    <h1>
+      Campus Notices,
+      <span class="line2">Reimagined.</span>
+    </h1>
+    <p class="hero-sub">
+      A unified platform for admins, faculty, and students to manage and view institutional notices — fast, organized, and always accessible.
+    </p>
+    <div class="role-cards">
+      <div class="role-card admin">
+        <div class="role-icon">🛡️</div>
+        <h3>Admin</h3>
+        <p>Manage all notices, departments, and user accounts</p>
+        <a href="pages/admin-login.html" class="role-btn" onclick="event.stopPropagation()">Admin Login</a>
+      </div>
+      <div class="role-card faculty">
+        <div class="role-icon">👨‍🏫</div>
+        <h3>Faculty</h3>
+        <p>Post and manage department-specific notices</p>
+        <a href="pages/faculty-login.html" class="role-btn" onclick="event.stopPropagation()">Faculty Login</a>
+      </div>
+      <div class="role-card student">
+        <div class="role-icon">🎓</div>
+        <h3>Student</h3>
+        <p>Browse, filter, and search all campus notices</p>
+        <a href="pages/student.html" class="role-btn" onclick="event.stopPropagation()">View Notices</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num">2s</div>
+      <div class="stat-label">Max Load Time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">User Roles</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Concurrent Users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Mobile Ready</div>
+    </div>
+  </div>
+
+  <section class="features" id="features">
+    <div class="section-label">System Capabilities</div>
+    <div class="section-title">Everything your campus needs</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h4>Role-Based Access</h4>
+        <p>Secure login for admins, faculty, and students with distinct permissions and dashboards.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h4>Expiry Management</h4>
+        <p>Set expiry dates on notices — they auto-archive to keep boards clean and relevant.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h4>Department Filtering</h4>
+        <p>Assign notices to specific departments. Students see only what's relevant to them.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h4>Smart Search</h4>
+        <p>Full-text search across all notices with instant results by keyword or category.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h4>Mobile Responsive</h4>
+        <p>Fully optimized for smartphones, tablets, and desktops — works everywhere.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h4>Real-Time Updates</h4>
+        <p>Notices appear instantly — no refresh needed. Always current, always reliable.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 EduBoard Digital Notice System. Built for campuses. Designed for clarity.
+  </footer>
+</body>
+</html>
